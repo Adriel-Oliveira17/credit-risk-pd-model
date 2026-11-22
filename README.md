@@ -28,7 +28,6 @@ Em seguida, a PD é convertida em **ratings (A–H)**, agrupando clientes de ris
 ```text
 ├── gerador.ipynb      # Simulação da base sintética de clientes (gera o Dados.csv)
 ├── modelo PD.ipynb    # Target, seleção por IV, treino OOT, avaliação, ratings e scoring
-├── requirements.txt   # Dependências do projeto
 └── README.md          # Documentação do projeto
 ```
 
