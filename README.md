@@ -15,7 +15,9 @@ A PD é um dos três componentes da perda esperada ($\text{EL} = \text{PD} \time
 
 Para cada cliente adimplente na safra de observação, o modelo estima:
 
-$$\text{PD}_{12\text{m}} = P(\text{default\_12m} = 1 \mid X)$$
+$$
+\text{PD}_{12m} = P(\text{default}_{12m} = 1 \mid X)
+$$
 
 Em seguida, a PD é convertida em **ratings (A–H)**, agrupando clientes de risco homogêneo e permitindo acompanhar a carteira por faixa de risco.
 
