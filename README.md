@@ -38,7 +38,7 @@ Em seguida, a PD é convertida em **ratings (A–H)**, agrupando clientes de ris
 
 ## Dicionário de Dados
 
-A base simulada contém **60.000 registros** distribuídos em quatro safras anuais de observação (`2022` a `2025`), com variáveis observadas na safra e o indicador de *default* nos 12 meses seguintes:
+A base simulada contém **30.000 registros** distribuídos em quatro safras anuais de observação (`2022` a `2025`), com variáveis observadas na safra e o indicador de *default* nos 12 meses seguintes:
 
 | Variável | Tipo | Descrição |
 | :--- | :--- | :--- |
@@ -58,7 +58,7 @@ A base simulada contém **60.000 registros** distribuídos em quatro safras anua
 ## Metodologia e Pipeline de Modelagem
 
 1. **Geração de Dados (`gerador.ipynb`):**
-   - Simulação de 60.000 clientes com `seed=42`. O `default_12m` é gerado por uma função logística de atrasos, utilização, variação de saldo e pagamento mínimo, com ruído, de forma que `renda_mensal` e `limite` não tenham efeito direto no risco.
+   - Simulação de 30.000 clientes com `seed=42`. O `default_12m` é gerado por uma função logística de atrasos, utilização, variação de saldo e pagamento mínimo, com ruído, de forma que `renda_mensal` e `limite` não tenham efeito direto no risco.
 2. **Estruturação da Base e Target:**
    - População adimplente na `safra_obs`, janela de performance de 12 meses (padrão Basileia/IFRS 9) e `default_12m = 1` para atraso > 90 dias.
 3. **Engenharia de Atributos:**
@@ -88,42 +88,47 @@ A base simulada contém **60.000 registros** distribuídos em quatro safras anua
 
 ## Resultados e Desempenho (Safra OOT 2025)
 
-> Preencher com os valores da execução do `modelo PD.ipynb`.
-
 | Métrica | Treino (2022–2024) | OOT (2025) |
 | :--- | :---: | :---: |
-| **AUC** | `—` | `—` |
-| **Gini** (`2·AUC − 1`) | `—` | `—` |
-| **KS** | `—` | `—` |
-| **Brier Score** | — | `—` |
-| **PSI (treino vs. 2025)** | — | `—` |
+| **AUC** | `0,6756` | `0,6869` |
+| **Gini** (`2·AUC − 1`) | `0,3512` | `0,3738` |
+| **KS** | `0,2547` | `0,2973` |
+| **Brier Score** | — | `0,0674` |
+| **PSI (treino vs. 2025)** | — | `0,0012` (estável, < 0,10) |
+
+O desempenho no OOT é equivalente ao do treino, sem sinal de *overfitting*. A taxa média de *default* é estável entre as safras (de `6,92%` a `7,56%`).
 
 ### Matriz de Ratings (OOT 2025)
 
 Pontos de corte definidos nos quantis da PD prevista no treino:
 
-| Rating | % Carteira | PD prevista média | *Bad rate* real |
-| :---: | :---: | :---: | :---: |
-| A | `—` | `—` | `—` |
-| B | `—` | `—` | `—` |
-| C | `—` | `—` | `—` |
-| D | `—` | `—` | `—` |
-| E | `—` | `—` | `—` |
-| F | `—` | `—` | `—` |
-| G | `—` | `—` | `—` |
-| H | `—` | `—` | `—` |
+| Rating | Clientes | % Carteira | PD prevista média | *Bad rate* real |
+| :---: | :---: | :---: | :---: | :---: |
+| A | 903 | 12,2% | 2,41% | 2,66% |
+| B | 893 | 12,0% | 3,47% | 3,47% |
+| C | 909 | 12,2% | 4,30% | 3,63% |
+| D | 945 | 12,7% | 5,20% | 5,19% |
+| E | 922 | 12,4% | 6,28% | 6,62% |
+| F | 946 | 12,7% | 7,65% | 9,41% |
+| G | 945 | 12,7% | 9,80% | 10,69% |
+| H | 969 | 13,0% | 16,37% | 17,96% |
+
+A taxa de *default* real cresce de forma monotônica de A a H.
 
 ### *Information Value*
 
 | Variável | IV | Decisão |
 | :--- | :---: | :---: |
-| `qtd_atrasos_curtos_6m` | `—` | `—` |
-| `percentual_uso` | `—` | `—` |
-| `utilizacao_inicial` | `—` | `—` |
-| `comprometimento_renda` | `—` | `—` |
-| `limite_restante` | `—` | `—` |
-| `variacao_saldo_3m` | `—` | `—` |
-| `saldo` | `—` | `—` |
+| `qtd_atrasos_curtos_6m` | `0,1795` | Médio |
+| `percentual_uso` | `0,1111` | Médio |
+| `utilizacao_inicial` | `0,1108` | Médio |
+| `comprometimento_renda` | `0,1024` | Médio |
+| `limite_restante` | `0,0999` | Fraco |
+| `variacao_saldo_3m` | `0,0712` | Fraco |
+| `saldo` | `0,0316` | Fraco |
+| `renda_mensal` | `0,0148` | Descartar |
+| `limite` | `0,0111` | Descartar |
+| `alavancagem_limite` | `0,0002` | Descartar |
 
 ---
 
@@ -161,6 +166,7 @@ pip install pandas numpy scikit-learn matplotlib seaborn jupyter
 
 ## Limitações
 
+- Gini OOT de ~0,37, um pouco abaixo da referência de ~0,40 para modelos comportamentais.
 - A base é **sintética**: o desempenho reflete as relações definidas no gerador, e não o comportamento de uma carteira real.
 - `pagou_minimo_ult_fatura` ainda não foi avaliada no IV nem testada no modelo.
 - A carteira de teste da última seção é fictícia e serve apenas para demonstração.
